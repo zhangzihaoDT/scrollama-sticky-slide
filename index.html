@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Scrollama: Sticky Overlay Example</title>
+	<meta name="description" content="Scrollama: Sticky Overlay Example">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel='stylesheet' href='css/style.css'>
+	<style>
+		@media (min-width: 800px) {
+			#scrolly {
+				position: relative;
+				display: -webkit-box;
+				display: -ms-flexbox;
+				display: flex;
+				background-color: #f3f3f3;
+				padding: 1rem;
+			}
+
+			#scrolly>* {
+				-webkit-box-flex: 1;
+				-ms-flex: 1;
+				flex: 1;
+			}
+
+			article {
+				padding: 0 1rem !important;
+			}
+		}
+
+		#scrolly {
+			position: relative;
+			background-color: #f3f3f3;
+			padding: 1rem;
+		}
+
+		article {
+			position: relative;
+			padding: 0;
+			max-width: 20rem;
+			margin: 0 auto;
+		}
+
+		figure {
+			position: -webkit-sticky;
+			position: sticky;
+			left: 0;
+			width: 100%;
+			margin: 0;
+			-webkit-transform: translate3d(0, 0, 0);
+			-moz-transform: translate3d(0, 0, 0);
+			transform: translate3d(0, 0, 0);
+			background-color: #8a8a8a;
+		}
+
+		.fixed {
+			background-attachment: fixed;
+			background-repeat: no-repeat;
+			background-size: cover;
+			background-position: center center;
+			height: 100%;
+			width: 100%;
+			transition: all 1s ease;
+		}
+
+		.one {
+			background-image: url("images/photo-1530426509291-d831d721c7b2.jpg")
+		}
+
+		.two {
+			background-image: url("images/photo-1521165582142-eaf4bd77b3f6.jpg")
+		}
+
+		.three {
+			background-image: url("images/photo-1505228395891-9a51e7e86bf6.jpg")
+		}
+
+		.fixed p {
+			text-align: center;
+			padding: 1rem;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			-moz-transform: translate(-50%, -50%);
+			-webkit-transform: translate(-50%, -50%);
+			transform: translate(-50%, -50%);
+			font-size: 8rem;
+			font-weight: 900;
+			color: #fff;
+		}
+
+		.step {
+			margin: 0 auto 2rem auto;
+			color: #fff;
+			background-color: rgba(0, 0, 0, 0.1)
+		}
+
+		.step:last-child {
+			margin-bottom: 0;
+		}
+
+		.step.is-active p {
+			background-color: goldenrod;
+			color: #3b3b3b;
+		}
+
+		.step p {
+			text-align: center;
+			padding: 1rem;
+			font-size: 1.5rem;
+			background-color: #3b3b3b;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<main>
+		<section id='intro'>
+			<h1 class='intro__hed'>Sticky Overlay&Side Example</h1>
+			<p class='intro__dek'>
+				Start scrolling to see how it works.
+			</p>
+		</section>
+
+		<section id='scrolly'>
+			<figure class="fixed mid-1">
+			</figure>
+
+			<article>
+				<div class='step' id="baker">
+					<p>STEP 1</p>
+				</div>
+				<div class='step' id="aldgate">
+					<p>STEP 2</p>
+				</div>
+				<div class='step' id="london-bridge">
+					<p>STEP 3</p>
+				</div>
+			</article>
+
+
+		</section>
+
+		<section id='outro'></section>
+	</main>
+
+	<!-- <div class='debug'></div> -->
+	<script src='https://unpkg.com/d3@5.9.1/dist/d3.min.js'></script>
+	<script src='https://unpkg.com/intersection-observer@0.5.1/intersection-observer.js'></script>
+	<script src='lib/stickyfill.min.js'></script>
+	<script src='lib/scrollama.min.js'></script>
+	<script>
+		// using d3 for convenience
+		var main = d3.select('main')//0
+		var scrolly = main.select('#scrolly');//0.1
+		var figure = scrolly.select('figure');//0.1.1
+		var article = scrolly.select('article');//0.1.2
+		var step = article.selectAll('.step');//0.1.2.X
+
+		// initialize the scrollama
+		const scroller = scrollama();
+
+		// generic window resize listener event
+		function handleResize() {
+			// 1. update height of step elements
+			var stepH = Math.floor(window.innerHeight * 0.75);
+			step.style('height', stepH + 'px');
+
+			var figureHeight = window.innerHeight / 2 * 1.5
+			var figureMarginTop = (window.innerHeight - figureHeight) / 2
+			figure
+				.style('height', figureHeight + 'px')
+				.style('top', figureMarginTop + 'px');
+
+			// 3. tell scrollama to update new element dimensions
+			scroller.resize();
+		}
+		var chapters = {
+			'baker': {
+				class: "one"
+			},
+			'aldgate': {
+				class: "two"
+			},
+			'london-bridge': {
+				class: "three"
+			}
+		}
+		// scrollama event handlers
+		function handleStepEnter(response) {
+			console.log(response)
+			// response = { element, direction, index }
+			// add color to current step only
+			step.classed('is-active', function (d, i) {//classed检查并添加一个类，要分类的第二个参数必须为true
+				return i === response.index;
+			})
+			const currentStep = response.element.id;
+
+			// update graphic based on step
+			console.log(chapters[currentStep].class)
+			//https://stackoverflow.com/questions/44224227/attr-vs-classed-in-d3-js
+			figure.attr("class", function (d, i) {
+				return "fixed " + chapters[currentStep].class
+			});
+		}
+
+		function setupStickyfill() {
+			d3.selectAll('.sticky').each(function () {
+				Stickyfill.add(this);
+			});
+		}
+
+		function init() {
+			setupStickyfill();
+
+			// 1. force a resize on load to ensure proper dimensions are sent to scrollama
+			handleResize();
+
+			// 2. setup the scroller passing options
+			// 		this will also initialize trigger observations
+			// 3. bind scrollama event handlers (this can be chained like below)
+			scroller.setup({
+				step: '#scrolly article .step',
+				offset: 0.33,
+				debug: true,
+			})
+				.onStepEnter(handleStepEnter)
+
+
+			// setup resize event
+			window.addEventListener('resize', handleResize);
+		}
+
+		// kick things off
+		init();
+
+	</script>
+</body>
+
+</html>
