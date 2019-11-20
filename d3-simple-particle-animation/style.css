@@ -1,0 +1,11 @@
+rect {
+	 /* fill: #851A03;*/
+	 opacity: .5;
+	  stroke-width: 1px;
+	}
+	rect:nth-child(10n+5){
+	  /*fill: #EBA262;*/
+	 }
+	 .btn-group{
+	 	display: block;
+	 }
